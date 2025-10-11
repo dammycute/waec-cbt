@@ -140,7 +140,7 @@ const StudentDashboard = () => {
             <span className="text-xs">Analytics</span>
           </button>
           <button 
-            onClick={() => alert('Profile coming soon')}
+            onClick={() => navigate('/profile')}
             className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-600"
           >
             <User className="w-6 h-6" />
