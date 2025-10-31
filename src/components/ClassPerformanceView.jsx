@@ -1,12 +1,11 @@
-// components/ClassPerformanceView.jsx - Class Performance Dashboard (Desktop)
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Download, TrendingUp, TrendingDown } from 'lucide-react';
+import { ArrowLeft, Download, TrendingUp, TrendingDown, X, Calendar, Clock, Users } from 'lucide-react';
 
 const ClassPerformanceView = () => {
-  const navigate = useNavigate();
   const [selectedClass, setSelectedClass] = useState('SS3A');
   const [dateRange, setDateRange] = useState('last-30-days');
+  const [showFocusModal, setShowFocusModal] = useState(false);
+  const [selectedTopic, setSelectedTopic] = useState(null);
 
   const classStats = {
     avgScore: 74,
@@ -41,17 +40,175 @@ const ClassPerformanceView = () => {
     { topic: 'Cell Biology', avgScore: 58, subject: 'Biology' }
   ];
 
+  const [focusSession, setFocusSession] = useState({
+    topic: '',
+    subject: '',
+    date: '',
+    time: '',
+    duration: '60',
+    targetStudents: 'all'
+  });
+
+  const handleCreateFocusSession = (topic) => {
+    setSelectedTopic(topic);
+    setFocusSession({
+      ...focusSession,
+      topic: topic.topic,
+      subject: topic.subject
+    });
+    setShowFocusModal(true);
+  };
+
+  const handleSubmitFocusSession = () => {
+    if (!focusSession.date || !focusSession.time) {
+      alert('Please fill in all required fields');
+      return;
+    }
+    alert(`Focus session created for ${focusSession.topic}!\n\nDate: ${focusSession.date}\nTime: ${focusSession.time}\nDuration: ${focusSession.duration} minutes\nStudents will be notified.`);
+    setShowFocusModal(false);
+    setFocusSession({
+      topic: '',
+      subject: '',
+      date: '',
+      time: '',
+      duration: '60',
+      targetStudents: 'all'
+    });
+  };
+
   const handleDownloadReport = () => {
     alert('Downloading class performance report...');
   };
 
+  const FocusSessionModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">Create Focus Session</h2>
+          <button 
+            onClick={() => setShowFocusModal(false)}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="space-y-6">
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+            <p className="text-sm text-orange-800">
+              <strong>Topic:</strong> {focusSession.topic} ({focusSession.subject})
+            </p>
+            <p className="text-sm text-orange-800 mt-1">
+              <strong>Class Average:</strong> {selectedTopic?.avgScore}%
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                <Calendar className="w-4 h-4" />
+                Session Date
+              </label>
+              <input
+                type="date"
+                value={focusSession.date}
+                onChange={(e) => setFocusSession({...focusSession, date: e.target.value})}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                <Clock className="w-4 h-4" />
+                Start Time
+              </label>
+              <input
+                type="time"
+                value={focusSession.time}
+                onChange={(e) => setFocusSession({...focusSession, time: e.target.value})}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Duration (minutes)
+            </label>
+            <select
+              value={focusSession.duration}
+              onChange={(e) => setFocusSession({...focusSession, duration: e.target.value})}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+            >
+              <option value="30">30 minutes</option>
+              <option value="45">45 minutes</option>
+              <option value="60">60 minutes</option>
+              <option value="90">90 minutes</option>
+              <option value="120">120 minutes</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+              <Users className="w-4 h-4" />
+              Target Students
+            </label>
+            <select
+              value={focusSession.targetStudents}
+              onChange={(e) => setFocusSession({...focusSession, targetStudents: e.target.value})}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+            >
+              <option value="all">All Students in {selectedClass}</option>
+              <option value="below60">Students scoring below 60%</option>
+              <option value="below70">Students scoring below 70%</option>
+              <option value="custom">Custom Selection</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Session Description (Optional)
+            </label>
+            <textarea
+              rows="3"
+              placeholder="Add notes about what will be covered in this session..."
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+            />
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm text-blue-800">
+              <strong>Note:</strong> Students will receive notifications about this focus session via email and SMS.
+            </p>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              onClick={() => setShowFocusModal(false)}
+              className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmitFocusSession}
+              className="flex-1 px-6 py-3 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600"
+            >
+              Create Focus Session
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="mb-6">
           <button 
-            onClick={() => navigate('/admin-dashboard')}
+            onClick={() => window.history.back()}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-4"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -95,7 +252,6 @@ const ClassPerformanceView = () => {
           </div>
         </div>
 
-        {/* Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow-sm p-6">
             <p className="text-sm text-gray-600 mb-1">Average Score</p>
@@ -122,7 +278,6 @@ const ClassPerformanceView = () => {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8 mb-8">
-          {/* Performance by Subject */}
           <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-6">Performance by Subject</h2>
             <div className="space-y-4">
@@ -143,7 +298,6 @@ const ClassPerformanceView = () => {
             </div>
           </div>
 
-          {/* Topics Needing Attention */}
           <div className="bg-orange-50 border border-orange-200 rounded-xl p-6">
             <h3 className="text-lg font-bold text-orange-900 mb-4">Topics Needing Attention</h3>
             <div className="space-y-4">
@@ -156,17 +310,19 @@ const ClassPerformanceView = () => {
                     </div>
                     <span className="text-lg font-bold text-orange-600">{topic.avgScore}%</span>
                   </div>
-                  <p className="text-xs text-gray-600">Class average below 60%</p>
+                  <p className="text-xs text-gray-600 mb-3">Class average below 60%</p>
+                  <button 
+                    onClick={() => handleCreateFocusSession(topic)}
+                    className="w-full px-3 py-2 bg-orange-500 text-white rounded-lg text-sm font-semibold hover:bg-orange-600"
+                  >
+                    Create Focus Session
+                  </button>
                 </div>
               ))}
             </div>
-            <button className="w-full mt-4 px-4 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600">
-              Create Focus Session
-            </button>
           </div>
         </div>
 
-        {/* Student Performance Table */}
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
           <div className="p-6 border-b border-gray-200">
             <h2 className="text-xl font-bold text-gray-900">Student Performance Table</h2>
@@ -225,7 +381,6 @@ const ClassPerformanceView = () => {
           </div>
         </div>
 
-        {/* Recommendations */}
         <div className="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
           <h3 className="text-lg font-bold text-blue-900 mb-4">📊 Recommendations</h3>
           <div className="space-y-3 text-blue-800">
@@ -236,6 +391,8 @@ const ClassPerformanceView = () => {
           </div>
         </div>
       </div>
+
+      {showFocusModal && <FocusSessionModal />}
     </div>
   );
 };

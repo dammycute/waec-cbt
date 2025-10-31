@@ -52,6 +52,7 @@ const SchoolAdminDashboard = () => {
               <BarChart3 className="w-5 h-5" />
               <span>Dashboard</span>
             </button>
+
             <button 
               onClick={() => navigate('/student-management')}
               className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
@@ -59,6 +60,7 @@ const SchoolAdminDashboard = () => {
               <Users className="w-5 h-5" />
               <span>Student Management</span>
             </button>
+
             <button 
               onClick={() => navigate('/class-performance')}
               className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
@@ -66,10 +68,16 @@ const SchoolAdminDashboard = () => {
               <FileText className="w-5 h-5" />
               <span>Class Performance</span>
             </button>
-            <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-medium">
+
+            {/* Settings button — add handler */}
+            <button
+              onClick={() => alert('Settings coming soon')}
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-medium"
+            >
               <Settings className="w-5 h-5" />
               <span>Settings</span>
             </button>
+
             <button 
               onClick={() => navigate('/login')}
               className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg font-medium mt-8"

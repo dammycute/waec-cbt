@@ -31,6 +31,7 @@ import AboutUs from './components/AboutUs';
 import NotFound from './components/NotFound';
 
 import './App.css';
+import Portfolio from './components/portfolio';
 
 function App() {
   return (
@@ -56,6 +57,7 @@ function App() {
           <Route path="/analytics" element={<StudentAnalytics />} />
           <Route path="/profile" element={<ProfileSettings />} />
           <Route path="/change-password" element={<ChangePassword />} />
+          <Route path="/portfolio" element={< Portfolio/>} />
           
           {/* School Admin Routes */}
           <Route path="/admin-dashboard" element={<SchoolAdminDashboard />} />

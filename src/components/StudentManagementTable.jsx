@@ -1,15 +1,14 @@
-// components/StudentManagementTable.jsx - Student Management (Desktop)
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search, Upload, Plus, Download, MoreVertical, ArrowLeft } from 'lucide-react';
+import { Search, Upload, Plus, Download, MoreVertical, ArrowLeft, X, Check } from 'lucide-react';
 
 const StudentManagementTable = () => {
-  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterClass, setFilterClass] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
-
-  const students = [
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [students, setStudents] = useState([
     { id: 1, name: 'John Doe', class: 'SS3', email: 'john@example.com', tests: 10, avgScore: 75, status: 'Active' },
     { id: 2, name: 'Jane Smith', class: 'SS3', email: 'jane@example.com', tests: 12, avgScore: 82, status: 'Active' },
     { id: 3, name: 'Michael Johnson', class: 'SS2', email: 'michael@example.com', tests: 8, avgScore: 68, status: 'Active' },
@@ -18,15 +17,252 @@ const StudentManagementTable = () => {
     { id: 6, name: 'Emily Davis', class: 'SS3', email: 'emily@example.com', tests: 11, avgScore: 85, status: 'Active' },
     { id: 7, name: 'Mark Wilson', class: 'SS2', email: 'mark@example.com', tests: 5, avgScore: 45, status: 'Active' },
     { id: 8, name: 'Lisa Anderson', class: 'SS3', email: 'lisa@example.com', tests: 9, avgScore: 78, status: 'Active' }
-  ];
+  ]);
+
+  const [newStudent, setNewStudent] = useState({
+    name: '',
+    email: '',
+    class: 'SS1',
+    phone: '',
+    password: ''
+  });
+
+  const handleAddStudent = (e) => {
+    e.preventDefault();
+    const student = {
+      id: students.length + 1,
+      name: newStudent.name,
+      class: newStudent.class,
+      email: newStudent.email,
+      tests: 0,
+      avgScore: 0,
+      status: 'Active'
+    };
+    setStudents([...students, student]);
+    setShowAddModal(false);
+    setNewStudent({ name: '', email: '', class: 'SS1', phone: '', password: '' });
+    alert('Student added successfully!');
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
+        setSelectedFile(file);
+      } else {
+        alert('Please select a CSV file');
+      }
+    }
+  };
+
+  const handleUploadCSV = () => {
+    if (!selectedFile) {
+      alert('Please select a CSV file first');
+      return;
+    }
+    alert(`Processing ${selectedFile.name}... Students will be imported from CSV.`);
+    setShowUploadModal(false);
+    setSelectedFile(null);
+  };
+
+  const handleExport = () => {
+    const csvContent = [
+      ['Name', 'Class', 'Email', 'Tests Taken', 'Avg Score', 'Status'],
+      ...students.map(s => [s.name, s.class, s.email, s.tests, s.avgScore, s.status])
+    ].map(row => row.join(',')).join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'students.csv';
+    a.click();
+  };
+
+  const downloadTemplate = () => {
+    const csvContent = "Name,Email,Class,Phone,Password\nJohn Doe,john@example.com,SS3,+234XXXXXXXXX,password123";
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'student_template.csv';
+    a.click();
+  };
+
+  const filteredStudents = students.filter(student => {
+    const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         student.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesClass = filterClass === 'all' || student.class === filterClass;
+    const matchesStatus = filterStatus === 'all' || student.status === filterStatus;
+    return matchesSearch && matchesClass && matchesStatus;
+  });
+
+  const AddStudentModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl max-w-md w-full p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">Add New Student</h2>
+          <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-gray-600">
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+            <input
+              type="text"
+              required
+              value={newStudent.name}
+              onChange={(e) => setNewStudent({...newStudent, name: e.target.value})}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+              placeholder="Enter student name"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+            <input
+              type="email"
+              required
+              value={newStudent.email}
+              onChange={(e) => setNewStudent({...newStudent, email: e.target.value})}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+              placeholder="student@email.com"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+            <input
+              type="tel"
+              value={newStudent.phone}
+              onChange={(e) => setNewStudent({...newStudent, phone: e.target.value})}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+              placeholder="+234 XXX XXX XXXX"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Class</label>
+            <select
+              value={newStudent.class}
+              onChange={(e) => setNewStudent({...newStudent, class: e.target.value})}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+            >
+              <option value="SS1">SS1</option>
+              <option value="SS2">SS2</option>
+              <option value="SS3">SS3</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Initial Password</label>
+            <input
+              type="password"
+              required
+              value={newStudent.password}
+              onChange={(e) => setNewStudent({...newStudent, password: e.target.value})}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+              placeholder="Set initial password"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              onClick={() => setShowAddModal(false)}
+              className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleAddStudent}
+              className="flex-1 px-6 py-3 bg-sky-500 text-white font-semibold rounded-lg hover:bg-sky-600"
+            >
+              Add Student
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const UploadCSVModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl max-w-md w-full p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">Upload Students CSV</h2>
+          <button onClick={() => setShowUploadModal(false)} className="text-gray-400 hover:text-gray-600">
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+            <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <input
+              type="file"
+              accept=".csv"
+              onChange={handleFileSelect}
+              className="hidden"
+              id="csv-upload"
+            />
+            <label
+              htmlFor="csv-upload"
+              className="cursor-pointer text-sky-600 hover:text-sky-700 font-medium"
+            >
+              Choose CSV file
+            </label>
+            <p className="text-sm text-gray-500 mt-2">or drag and drop</p>
+            {selectedFile && (
+              <div className="mt-4 flex items-center justify-center gap-2 text-green-600">
+                <Check className="w-5 h-5" />
+                <span className="text-sm font-medium">{selectedFile.name}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm text-blue-800 mb-2">
+              <strong>CSV Format:</strong>
+            </p>
+            <p className="text-xs text-blue-700 font-mono">
+              Name, Email, Class, Phone, Password
+            </p>
+          </div>
+
+          <button
+            onClick={downloadTemplate}
+            className="w-full text-sky-600 hover:text-sky-700 font-medium text-sm"
+          >
+            Download CSV Template
+          </button>
+
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={() => setShowUploadModal(false)}
+              className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleUploadCSV}
+              className="flex-1 px-6 py-3 bg-sky-500 text-white font-semibold rounded-lg hover:bg-sky-600"
+            >
+              Upload
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="mb-6">
           <button 
-            onClick={() => navigate('/admin-dashboard')}
+            onClick={() => window.history.back()}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-4"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -45,11 +281,17 @@ const StudentManagementTable = () => {
                   className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
                 />
               </div>
-              <button className="flex items-center gap-2 bg-white border-2 border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-semibold hover:bg-gray-50">
+              <button 
+                onClick={() => setShowUploadModal(true)}
+                className="flex items-center gap-2 bg-white border-2 border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-semibold hover:bg-gray-50"
+              >
                 <Upload className="w-5 h-5" />
                 Upload CSV
               </button>
-              <button className="flex items-center gap-2 bg-sky-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-sky-600">
+              <button 
+                onClick={() => setShowAddModal(true)}
+                className="flex items-center gap-2 bg-sky-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-sky-600"
+              >
                 <Plus className="w-5 h-5" />
                 Add Student
               </button>
@@ -57,7 +299,6 @@ const StudentManagementTable = () => {
           </div>
         </div>
 
-        {/* Filters */}
         <div className="flex gap-4 mb-6">
           <select
             value={filterClass}
@@ -78,13 +319,15 @@ const StudentManagementTable = () => {
             <option value="Active">Active</option>
             <option value="Inactive">Inactive</option>
           </select>
-          <button className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+          <button 
+            onClick={handleExport}
+            className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+          >
             <Download className="w-5 h-5" />
             Export List
           </button>
         </div>
 
-        {/* Table */}
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
@@ -102,7 +345,7 @@ const StudentManagementTable = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {students.map((student) => (
+              {filteredStudents.map((student) => (
                 <tr key={student.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <input type="checkbox" className="rounded" />
@@ -142,9 +385,8 @@ const StudentManagementTable = () => {
           </table>
         </div>
 
-        {/* Pagination */}
         <div className="mt-6 flex items-center justify-between">
-          <p className="text-sm text-gray-600">Showing 1-8 of 247 students</p>
+          <p className="text-sm text-gray-600">Showing {filteredStudents.length} students</p>
           <div className="flex gap-2">
             <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Previous</button>
             <button className="px-4 py-2 bg-sky-500 text-white rounded-lg">1</button>
@@ -154,6 +396,9 @@ const StudentManagementTable = () => {
           </div>
         </div>
       </div>
+
+      {showAddModal && <AddStudentModal />}
+      {showUploadModal && <UploadCSVModal />}
     </div>
   );
 };
