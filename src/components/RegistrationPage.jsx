@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, BookOpen, CheckCircle, ArrowRight } from 'lucide-react';
+import { registerUser } from '../services/auth';
 
 const RegistrationPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -15,19 +16,8 @@ const RegistrationPage = () => {
     plan: 'free',
     agreedToTerms: false
   });
-
-  const handleSubmit = () => {
-    if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match!');
-      return;
-    }
-    if (!formData.agreedToTerms) {
-      alert('Please agree to Terms & Privacy Policy');
-      return;
-    }
-    console.log('Registration:', formData);
-    alert('Account created successfully! (Demo)');
-  };
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState({ success: '', error: '' });
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -48,15 +38,49 @@ const RegistrationPage = () => {
 
   const passwordStrength = getPasswordStrength();
 
+  const handleSubmit = async () => {
+    setStatus({ success: '', error: '' });
+    if (formData.password !== formData.confirmPassword) {
+      setStatus({ error: 'Passwords do not match!', success: '' });
+      return;
+    }
+    if (!formData.agreedToTerms) {
+      setStatus({ error: 'Please agree to Terms & Privacy Policy', success: '' });
+      return;
+    }
+    setLoading(true);
+    try {
+      const sendData = { ...formData };
+      delete sendData.confirmPassword;
+      const res = await registerUser(sendData);
+      if (res) {
+        window.location.href = '/login';
+      }
+      setStatus({ success: 'Account created successfully!', error: '' });
+      setFormData({
+        fullName: '',
+        email: '',
+        phone: '',
+        password: '',
+        confirmPassword: '',
+        school: '',
+        class: 'SS1',
+        plan: 'free',
+        agreedToTerms: false
+      });
+    } catch (err) {
+      setStatus({ error: err.message, success: '' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-12 gap-8">
-          
-          {/* Left Sidebar - Progress & Benefits */}
           <div className="lg:col-span-4">
             <div className="sticky top-8">
-              {/* Logo */}
               <div className="flex items-center gap-3 mb-8">
                 <div className="w-12 h-12 bg-sky-500 rounded-xl flex items-center justify-center">
                   <BookOpen className="w-7 h-7 text-white" />
@@ -65,8 +89,6 @@ const RegistrationPage = () => {
                   <h1 className="text-xl font-bold text-gray-900">WAEC CBT Practice</h1>
                 </div>
               </div>
-
-              {/* Progress Steps */}
               <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
                 <h3 className="font-semibold text-gray-900 mb-4">Registration Steps</h3>
                 <div className="space-y-4">
@@ -90,8 +112,6 @@ const RegistrationPage = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Benefits */}
               <div className="bg-gradient-to-br from-sky-50 to-blue-50 rounded-xl p-6">
                 <h3 className="font-semibold text-gray-900 mb-4">What You'll Get</h3>
                 <div className="space-y-3">
@@ -123,12 +143,11 @@ const RegistrationPage = () => {
                 <h2 className="text-3xl font-bold text-gray-900 mb-2">Create Your Account</h2>
                 <p className="text-gray-600">Join thousands of students preparing for WAEC</p>
               </div>
-
               <div className="space-y-6">
-                {/* Personal Information */}
+                {status.error && <div className="text-red-600 text-sm mb-2">{status.error}</div>}
+                {status.success && <div className="text-green-600 text-sm mb-2">{status.success}</div>}
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h3>
-                  
                   <div className="grid md:grid-cols-2 gap-4 mb-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -143,7 +162,6 @@ const RegistrationPage = () => {
                         className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                       />
                     </div>
-
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Email Address
@@ -158,7 +176,6 @@ const RegistrationPage = () => {
                       />
                     </div>
                   </div>
-
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Phone Number
@@ -172,7 +189,6 @@ const RegistrationPage = () => {
                       className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                     />
                   </div>
-
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -208,7 +224,7 @@ const RegistrationPage = () => {
                             </span>
                           </div>
                           <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                            <div 
+                            <div
                               className={`h-full ${passwordStrength.color} transition-all duration-300`}
                               style={{ width: `${passwordStrength.strength}%` }}
                             />
@@ -216,7 +232,6 @@ const RegistrationPage = () => {
                         </div>
                       )}
                     </div>
-
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Confirm Password
@@ -242,10 +257,8 @@ const RegistrationPage = () => {
                   </div>
                 </div>
 
-                {/* School Details */}
                 <div className="pt-6 border-t border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">School Details</h3>
-                  
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -260,7 +273,6 @@ const RegistrationPage = () => {
                         className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                       />
                     </div>
-
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Class
@@ -279,12 +291,9 @@ const RegistrationPage = () => {
                   </div>
                 </div>
 
-                {/* Plan Selection */}
                 <div className="pt-6 border-t border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Choose Your Plan</h3>
-                  
                   <div className="grid md:grid-cols-2 gap-4">
-                    {/* Free Plan */}
                     <label className={`relative cursor-pointer border-2 rounded-xl p-6 transition-all ${
                       formData.plan === 'free' 
                         ? 'border-sky-500 bg-sky-50' 
@@ -317,8 +326,6 @@ const RegistrationPage = () => {
                         </li>
                       </ul>
                     </label>
-
-                    {/* Premium Plan */}
                     <label className={`relative cursor-pointer border-2 rounded-xl p-6 transition-all ${
                       formData.plan === 'premium' 
                         ? 'border-sky-500 bg-sky-50' 
@@ -361,7 +368,6 @@ const RegistrationPage = () => {
                   </div>
                 </div>
 
-                {/* Terms & Conditions */}
                 <div className="pt-6 border-t border-gray-200">
                   <label className="flex items-start gap-3 cursor-pointer">
                     <input
@@ -384,17 +390,15 @@ const RegistrationPage = () => {
                   </label>
                 </div>
 
-                {/* Submit Button */}
                 <button
                   type="button"
                   onClick={handleSubmit}
+                  disabled={loading}
                   className="w-full h-12 bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
-                  Create Account
+                  {loading ? 'Creating...' : 'Create Account'}
                   <ArrowRight className="w-5 h-5" />
                 </button>
-
-                {/* Login Link */}
                 <p className="text-center text-gray-600">
                   Already have an account?{' '}
                   <button type="button" className="text-sky-600 font-semibold hover:text-sky-700">
