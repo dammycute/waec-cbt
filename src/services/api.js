@@ -1,3 +1,4 @@
+// src/services/api.js
 import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:5000/api';
@@ -28,6 +29,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      console.log(error.response.data.message || 'Unauthorized. Logging out.');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
@@ -74,6 +76,26 @@ export const userAPI = {
   updateProfile: (data) => api.put('/users/profile', data),
   updatePreferences: (data) => api.put('/users/preferences', data),
   deleteAccount: () => api.delete('/users/account')
+};
+
+// Subject API
+export const subjectAPI = {
+  getAllSubjects: () => api.get('/subjects'),
+  getSubject: (id) => api.get(`/subjects/${id}`),
+  createSubject: (data) => api.post('/subjects', data),
+  updateSubject: (id, data) => api.put(`/subjects/${id}`, data),
+  deleteSubject: (id) => api.delete(`/subjects/${id}`)
+};
+
+// Question API
+export const questionAPI = {
+  getAllQuestions: (params) => api.get('/questions', { params }),
+  getQuestion: (id) => api.get(`/questions/${id}`),
+  createQuestion: (data) => api.post('/questions', data),
+  updateQuestion: (id, data) => api.put(`/questions/${id}`, data),
+  deleteQuestion: (id) => api.delete(`/questions/${id}`),
+  bulkUploadQuestions: (questions) => api.post('/questions/bulk', { questions }),
+  uploadQuestionsFile: (fileData, format) => api.post('/questions/upload', { fileData, format })
 };
 
 export default api;

@@ -32,6 +32,8 @@ import NotFound from './components/NotFound';
 
 import './App.css';
 import Portfolio from './components/portfolio';
+import SubjectManagement from './components/SubjectManagement';
+import QuestionManagement from './components/questionManagement';
 
 function App() {
   return (
@@ -65,6 +67,9 @@ function App() {
           <Route path="/class-performance" element={<ClassPerformanceView />} />
           <Route path="/student/:id" element={<IndividualStudentView />} />
           <Route path="/test-scheduling" element={<TestScheduling />} />
+          <Route path="/create-subject" element={<SubjectManagement />} />
+          <Route path="/create-questions" element={<QuestionManagement />} />
+
           
           {/* 404 Page */}
           <Route path="/404" element={<NotFound />} />

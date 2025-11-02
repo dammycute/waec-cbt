@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { loginUser } from '../services/auth';
 
 const LoginPage = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -18,15 +20,38 @@ const LoginPage = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
+    
     try {
-      const user = await loginUser(formData.email, formData.password);
-      localStorage.setItem('authToken', user.token);
+      const response = await loginUser(formData.email, formData.password);
+      
+      console.log('Login response:', response); // Debug log
+      
+      // Handle different response structures
+      const token = response.token || response.data?.token;
+      const user = response.user || response.data?.user || response;
+      
+      if (!token) {
+        throw new Error('No token received from server');
+      }
+      
+      // Store with consistent key name 'token'
+      localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
-      window.location.href = user.role === 'admin' ? '/admin-dashboard' : '/dashboard';
+      
+      // Navigate based on role
+      const userRole = user.role || 'student';
+      if (userRole === 'admin') {
+        navigate('/admin-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
+      
     } catch (err) {
-      setError(err.message);
+      console.error('Login error:', err);
+      setError(err.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -35,7 +60,9 @@ const LoginPage = () => {
         <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Login</h2>
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700"> Email </label>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              Email
+            </label>
             <input
               type="email"
               id="email"
@@ -49,7 +76,9 @@ const LoginPage = () => {
             />
           </div>
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700"> Password </label>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
             <div className="relative mt-1">
               <input
                 type={showPassword ? "text" : "password"}
@@ -68,25 +97,33 @@ const LoginPage = () => {
                 onClick={() => setShowPassword(!showPassword)}
                 tabIndex={-1}
               >
-                {showPassword ? (
-                  <span>Hide</span>
-                ) : (
-                  <span>Show</span>
-                )}
+                {showPassword ? <span>Hide</span> : <span>Show</span>}
               </button>
             </div>
           </div>
-          {error && <div className="text-red-500 text-sm">{error}</div>}
+          {error && (
+            <div className="text-red-500 text-sm bg-red-50 border border-red-200 rounded p-3">
+              {error}
+            </div>
+          )}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-sky-500 text-white font-semibold py-2 rounded hover:bg-sky-600 transition"
+            className="w-full bg-sky-500 text-white font-semibold py-2 rounded hover:bg-sky-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
         <div className="mt-6 text-center text-gray-600">
-          <a href="/forgot-password" className="text-sky-500 hover:underline">Forgot Password?</a>
+          <a href="/forgot-password" className="text-sky-500 hover:underline">
+            Forgot Password?
+          </a>
+        </div>
+        <div className="mt-4 text-center text-gray-600 text-sm">
+          Don't have an account?{' '}
+          <a href="/register" className="text-sky-500 hover:underline font-medium">
+            Sign up
+          </a>
         </div>
       </div>
     </div>

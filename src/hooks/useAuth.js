@@ -1,4 +1,3 @@
-// src/hooks/useAuth.js
 import { useState, useEffect } from 'react';
 
 export const useAuth = () => {
@@ -6,7 +5,7 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('token'); // Changed from 'authToken'
     if (token) {
       fetchUser();
     } else {
@@ -17,7 +16,9 @@ export const useAuth = () => {
   const fetchUser = async () => {
     try {
       const response = await fetch('http://localhost:5000/api/auth/me', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('authToken')}` }
+        headers: { 
+          'Authorization': `Bearer ${localStorage.getItem('token')}` // Changed from 'authToken'
+        }
       });
       const data = await response.json();
       if (data.success) setUser(data.data);
@@ -30,7 +31,7 @@ export const useAuth = () => {
   };
 
   const logout = () => {
-    localStorage.removeItem('authToken');
+    localStorage.removeItem('token'); // Changed from 'authToken'
     localStorage.removeItem('user');
     setUser(null);
     window.location.href = '/login';
