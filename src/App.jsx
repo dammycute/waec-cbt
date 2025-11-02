@@ -37,7 +37,6 @@ import QuestionManagement from './components/questionManagement';
 
 function App() {
   return (
-    <Router>
       <div className="App">
         <Routes>
           {/* Public Routes */}
@@ -76,7 +75,6 @@ function App() {
           <Route path="*" element={<Navigate to="/404" replace />} />
         </Routes>
       </div>
-    </Router>
   );
 }
 
