@@ -1,7 +1,7 @@
 // src/services/auth.js
 // src/services/auth.js
 export async function registerUser(formData) {
-  const response = await fetch('http://localhost:5000/api/auth/register', {
+  const response = await fetch('https://ht-waec-backend.netlify.app/api/auth/register', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -18,7 +18,7 @@ export async function registerUser(formData) {
 
 
 export async function loginUser(email, password) {
-  const response = await fetch('http://localhost:5000/api/auth/login', {
+  const response = await fetch('https://ht-waec-backend.netlify.app/api/auth/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
