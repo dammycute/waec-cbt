@@ -15,7 +15,7 @@ export const useAuth = () => {
 
   const fetchUser = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/me', {
+      const response = await fetch('https://ht-waec-backend.netlify.app/.netlify/functions/server/api/auth/me', {
         headers: { 
           'Authorization': `Bearer ${localStorage.getItem('token')}` // Changed from 'authToken'
         }
