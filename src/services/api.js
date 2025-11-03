@@ -1,9 +1,9 @@
 // src/services/api.js
 import axios from 'axios';
 
-const API_BASE_URL = 'https://ht-waec-backend.netlify.app/.netlify/functions/server/api';
+const API_BASE_URL = 'https://ht-waec-backend.netlify.app';
 
-const api = axios.create({
+const api = axios.create({  
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json'
@@ -47,6 +47,7 @@ export const authAPI = {
   getMe: () => api.get('/auth/me'),
   updatePassword: (data) => api.put('/auth/update-password', data)
 };
+
 
 // Test API
 export const testAPI = {
