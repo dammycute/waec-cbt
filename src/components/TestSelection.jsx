@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Clock, AlertCircle, Loader, CheckCircle, Info } from 'lucide-react';
-import { testAPI } from '../services/api';
+import { subjectAPI } from '../services/api';
+import axios from 'axios';
 
 const TestSelection = () => {
   const navigate = useNavigate();
@@ -52,41 +53,26 @@ const TestSelection = () => {
       setLoading(true);
       setError(null);
       
-      // Fetch subjects from backend
-      const response = await testAPI.getTests();
+      console.log('🔍 Fetching subjects...');
       
-      if (response.data.success) {
-        // Group tests by subject
-        const subjectMap = new Map();
-        
-        response.data.data.forEach(test => {
-          const subject = test.subject;
-          if (!subjectMap.has(subject.id)) {
-            subjectMap.set(subject.id, {
-              id: subject.id,
-              name: subject.name,
-              code: subject.code,
-              icon: subject.icon,
-              color: subject.color,
-              questionCount: 0
-            });
-          }
-          // Count questions (this is approximate)
-          const currentSubject = subjectMap.get(subject.id);
-          currentSubject.questionCount += test.totalQuestions || 0;
-        });
-
-        const subjectsArray = Array.from(subjectMap.values());
-        setSubjects(subjectsArray);
+      // Fetch subjects from the correct endpoint
+      const response = await subjectAPI.getAllSubjects();
+      
+      console.log('✅ Subjects response:', response);
+      
+      if (response.success && response.data) {
+        setSubjects(response.data);
         
         // Auto-select first subject
-        if (subjectsArray.length > 0 && !selectedSubject) {
-          setSelectedSubject(subjectsArray[0]);
+        if (response.data.length > 0 && !selectedSubject) {
+          setSelectedSubject(response.data[0]);
         }
+      } else {
+        throw new Error('Invalid response format');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load subjects');
-      console.error('Error fetching subjects:', err);
+      console.error('❌ Error fetching subjects:', err);
+      setError(err.response?.data?.message || err.message || 'Failed to load subjects');
     } finally {
       setLoading(false);
     }
@@ -104,29 +90,45 @@ const TestSelection = () => {
 
       const testType = testTypes.find(t => t.id === selectedTestType);
       
-      // Create test through backend
-      const response = await testAPI.createTest({
-        title: `${selectedSubject.name} ${testType.name}`,
-        subject: selectedSubject.id,
+      console.log('🎯 Generating test:', {
+        subject: selectedSubject.name,
         type: selectedTestType,
-        questionCount: testType.questions,
-        duration: testType.duration,
-        difficulty: 'mixed'
+        questions: testType.questions
       });
 
+      // Generate test through backend
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        'https://waec-backend.vercel.app/api/tests/generate',
+        {
+          subjectId: selectedSubject.id,
+          type: selectedTestType,
+          questionCount: testType.questions,
+          difficulty: 'mixed'
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      console.log('✅ Test generated:', response.data);
+
       if (response.data.success) {
-        const testId = response.data.data.id;
+        const testData = response.data.data;
         
-        // Store test info in sessionStorage
-        sessionStorage.setItem('currentTestId', testId);
+        // Store test data in sessionStorage
+        sessionStorage.setItem('currentTest', JSON.stringify(testData));
         sessionStorage.setItem('testStartTime', new Date().toISOString());
         
         // Navigate to test interface
-        navigate(`/test/${testId}`);
+        navigate('/test', { state: { testData } });
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to generate test');
-      console.error('Error generating test:', err);
+      console.error('❌ Error generating test:', err);
+      setError(err.response?.data?.message || err.message || 'Failed to generate test');
     } finally {
       setGenerating(false);
     }
@@ -254,7 +256,7 @@ const TestSelection = () => {
                       key={subject.id}
                       onClick={() => setSelectedSubject(subject)}
                       disabled={generating}
-                      className={`p-4 lg:p-5 rounded-xl transition-all ${
+                      className={`p-4 lg:p-5 rounded-xl transition-all relative ${
                         isSelected 
                           ? 'bg-sky-50 border-2 border-sky-500 shadow-md scale-105' 
                           : 'bg-white border-2 border-gray-200 shadow-sm hover:shadow-md hover:border-sky-300'
@@ -278,6 +280,11 @@ const TestSelection = () => {
                           <span className="text-xs text-gray-500 mt-1 block">
                             {subject.code}
                           </span>
+                          {subject.questionCount > 0 && (
+                            <span className="text-xs text-gray-400 mt-1 block">
+                              {subject.questionCount} questions
+                            </span>
+                          )}
                         </div>
                         {isSelected && (
                           <CheckCircle className="w-5 h-5 text-sky-500 absolute top-2 right-2" />
