@@ -72,6 +72,7 @@ const QuestionManagement = () => {
     try {
       const response = await api.get('/subjects');
       if (response.data.success) {
+        console.log(response.data.id);
         setSubjects(response.data.data);
       }
     } catch (err) {
@@ -93,6 +94,8 @@ const QuestionManagement = () => {
       params.append('limit', filters.limit);
 
       const response = await api.get(`/questions?${params.toString()}`);
+
+      
 
       if (response.data.success) {
         setQuestions(response.data.data);
