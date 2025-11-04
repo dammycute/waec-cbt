@@ -1,5 +1,5 @@
 // src/services/auth.js
-const BackendUrl = 'https://ht-waec-backend.netlify.app';
+const BackendUrl = 'https://waec-backend.vercel.app/api';
 
 export async function registerUser(formData) {
   try {

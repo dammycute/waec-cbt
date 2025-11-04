@@ -1,7 +1,7 @@
 // src/services/api.js
 import axios from 'axios';
 
-const API_BASE_URL = 'https://ht-waec-backend.netlify.app';
+const API_BASE_URL = 'https://waec-backend.vercel.app/api';
 
 const api = axios.create({  
   baseURL: API_BASE_URL,
