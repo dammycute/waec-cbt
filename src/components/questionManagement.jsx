@@ -72,7 +72,7 @@ const QuestionManagement = () => {
     try {
       const response = await api.get('/subjects');
       if (response.data.success) {
-        console.log(response.data.id);
+        console.log(response.data.data.id);
         setSubjects(response.data.data);
       }
     } catch (err) {
