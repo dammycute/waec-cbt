@@ -80,23 +80,54 @@ const StudentDashboard = () => {
         console.log('Analytics not available, using defaults');
       }
 
-      // Fetch recent tests
+      // Fetch recent tests with improved subject handling
       try {
         const recentTestsData = await analyticsService.getRecentTests(5);
         
+        console.log('📊 Recent tests data:', recentTestsData);
+        
         if (recentTestsData.success && recentTestsData.data) {
-          const formattedTests = recentTestsData.data.map(attempt => ({
-            id: attempt.id,
-            subject: attempt.test?.subject?.name || 'Unknown Subject',
-            date: formatDate(attempt.completedAt),
-            score: attempt.correctAnswers || 0,
-            total: attempt.totalQuestions || 0,
-            percentage: attempt.percentage || 0,
-            trend: getTrend(attempt.percentage)
-          }));
+          const formattedTests = recentTestsData.data.map(attempt => {
+            // Try multiple ways to get subject name
+            let subjectName = 'Unknown Subject';
+            
+            // Check if test exists and has subject
+            if (attempt.test && attempt.test.subject) {
+              subjectName = attempt.test.subject.name;
+            }
+            // Check if testMetadata exists (for dynamic tests)
+            else if (attempt.testMetadata && attempt.testMetadata.title) {
+              subjectName = attempt.testMetadata.title;
+            }
+            // Check direct subject reference
+            else if (attempt.subject) {
+              subjectName = attempt.subject.name || attempt.subject;
+            }
+
+            console.log('🔍 Processing attempt:', {
+              attemptId: attempt.id,
+              hasTest: !!attempt.test,
+              hasSubject: !!(attempt.test?.subject),
+              hasTestMetadata: !!attempt.testMetadata,
+              subjectName: subjectName
+            });
+
+            return {
+              id: attempt.id,
+              subject: subjectName,
+              date: formatDate(attempt.completedAt),
+              score: attempt.correctAnswers || 0,
+              total: attempt.totalQuestions || 0,
+              percentage: attempt.percentage || 0,
+              trend: getTrend(attempt.percentage)
+            };
+          });
+          
+          console.log('✅ Formatted tests:', formattedTests);
           setRecentTests(formattedTests);
         }
       } catch (err) {
+        console.error('❌ Error loading recent tests:', err);
         console.log('Recent tests not available');
       }
 
