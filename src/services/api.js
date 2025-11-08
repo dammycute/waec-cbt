@@ -54,7 +54,11 @@ export const testAPI = {
   getTests: (params) => api.get('/tests', { params }),
   getTest: (id) => api.get(`/tests/${id}`),
   startTest: (id) => api.post(`/tests/${id}/start`),
-  submitTest: (id, data) => api.post(`/tests/${id}/submit`, data)
+  submitTest: (id, data) => api.post(`/tests/${id}/submit`, data),
+  
+  // NEW ENDPOINTS
+  generateTopicPractice: (data) => api.post('/tests/generate-topic-practice', data),
+  getSubjectTopics: (subjectId) => api.get(`/tests/topics/${subjectId}`)
 };
 
 // Results API
@@ -69,7 +73,11 @@ export const analyticsAPI = {
   getMyAnalytics: () => api.get('/analytics/me'),
   getSubjectPerformance: () => api.get('/analytics/subject-performance'),
   getTopicMastery: () => api.get('/analytics/topic-mastery'),
-  getWeeklyProgress: (params) => api.get('/analytics/weekly-progress', { params })
+  getWeeklyProgress: (params) => api.get('/analytics/weekly-progress', { params }),
+  getRecentTests: (params) => api.get('/analytics/recent-tests', { params }),
+  
+  // NEW ENDPOINTS
+  getFocusAreas: () => api.get('/analytics/focus-areas')
 };
 
 // User API
